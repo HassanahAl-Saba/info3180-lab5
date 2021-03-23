@@ -54,7 +54,6 @@ def login():
             # Then store the result of that query to a `user` variable so it can be
             # passed to the login_user() method below.
             
-            # get user id, load into session
             
             login_user(user,remember=remember_me)
 
@@ -73,6 +72,13 @@ def login():
 @login_required
 def secure_page():
     return render_template('secure_page.html')
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.')
+    return redirect(url_for('home'))
 
 @login_manager.user_loader
 def load_user(id):
