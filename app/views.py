@@ -29,17 +29,23 @@ def about():
     return render_template('about.html')
 
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    if request.method == "POST" and form.validate_on_submit():
+    error = None
+    if request.method == 'POST' and form.validate_on_submit():
         username = form.username.data
         password = form.password.data
 
-        user = UserProfile.query.filter_by(username=username, password=password).first()
+        user = UserProfile.query.filter_by(username=username).first()
 
-        if form.username.data = user and check_password_hash(user.password, password):
-            
+        if user is not None and check_password_hash(user.password, password):
+            remember_me = False
+
+            if 'remember_me' in request.form:
+                remember_me = True
+
+
             # Get the username and password values from the form.
 
             # using your model, query database for a user based on the username
@@ -50,16 +56,24 @@ def login():
             
             # get user id, load into session
             
-            login_user(user, id)
+            login_user(user,remember=remember_me)
 
             flash('Logged in successfully!')
             # remember to flash a message to the user
-            return redirect(url_for("/secure-page"))  # they should be redirected to a secure-page route instead
-    return render_template("login.html", form=form)
+            return redirect(url_for('secure_page'))  # they should be redirected to a secure-page route instead
+        else:
+           flash('Username or Passsword incorrect. Try again')
+    return render_template('login.html', form=form)
 
 
 # user_loader callback. This callback is used to reload the user object from
 # the user ID stored in the session
+
+@app.route('/secure-page')
+@login_required
+def secure_page():
+    return render_template('secure_page.html')
+
 @login_manager.user_loader
 def load_user(id):
     return UserProfile.query.get(int(id))
